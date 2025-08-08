@@ -208,6 +208,16 @@ class App {
     // ADDITIONAL PUBLIC ROUTES
     // ===============================================
 
+    // Simple status check (no database required)
+    this.app.get('/', (_req, res) => {
+      res.json({ 
+        status: 'API is running',
+        timestamp: new Date().toISOString(),
+        environment: process.env.NODE_ENV || 'development',
+        version: '1.0.0'
+      });
+    });
+
     // Health check (public)
     this.app.get('/health', async (_req, res) => {
       try {
@@ -252,23 +262,75 @@ class App {
 
   public async start(): Promise<void> {
     try {
-      // Initialize database
+      console.log('[APP] Starting application...');
+      console.log('[APP] Environment:', process.env.NODE_ENV || 'development');
+      console.log('[APP] Port:', this.port);
+      
+      // Initialize database with better error handling
+      console.log('[APP] Connecting to database...');
       await AppDataSource.initialize();
-      console.log('Database connected successfully');
+      console.log('[APP] Database connected successfully');
 
       // Start server (HTTP + WebSocket)
-      this.server.listen(this.port, () => {
-        console.log(`Server is running on http://localhost:${this.port}`);
-        console.log(`Health check: http://localhost:${this.port}/health`);
-        console.log(`WebSocket server ready for connections`);
+      this.server.listen(this.port, '0.0.0.0', () => {
+        console.log(`[APP] Server is running on http://0.0.0.0:${this.port}`);
+        console.log(`[APP] Health check: http://0.0.0.0:${this.port}/health`);
+        console.log(`[APP] WebSocket server ready for connections`);
+        console.log('[APP] Application started successfully');
       });
+
+      // Handle server errors
+      this.server.on('error', (error: any) => {
+        console.error('[APP] Server error:', error);
+        if (error.code === 'EADDRINUSE') {
+          console.error(`[APP] Port ${this.port} is already in use`);
+        }
+      });
+
     } catch (error) {
-      console.error('Error starting application:', error);
-      process.exit(1);
+      console.error('[APP] Error starting application:', error);
+      
+      // In production, try to gracefully handle database connection errors
+      if (process.env.NODE_ENV === 'production') {
+        console.log('[APP] Attempting to restart database connection in 5 seconds...');
+        setTimeout(async () => {
+          try {
+            await AppDataSource.initialize();
+            console.log('[APP] Database reconnected successfully');
+          } catch (retryError) {
+            console.error('[APP] Failed to reconnect to database:', retryError);
+            process.exit(1);
+          }
+        }, 5000);
+      } else {
+        process.exit(1);
+      }
     }
   }
 }
 
 // Start the application
 const app = new App();
+
+// Graceful shutdown handling
+process.on('SIGTERM', () => {
+  console.log('[APP] SIGTERM received, shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('SIGINT', () => {
+  console.log('[APP] SIGINT received, shutting down gracefully...');
+  process.exit(0);
+});
+
+process.on('uncaughtException', (error) => {
+  console.error('[APP] Uncaught Exception:', error);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[APP] Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
 app.start();

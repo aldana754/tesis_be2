@@ -27,4 +27,21 @@ export const AppDataSource = new DataSource({
   subscribers: isProduction 
     ? ['dist/infrastructure/database/subscribers/**/*.js']
     : ['src/infrastructure/database/subscribers/**/*.ts'],
+  // Connection timeout and retry options for Railway
+  connectTimeoutMS: 60000,
+  extra: {
+    max: 10, // Maximum number of connections
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 60000,
+  }
 });
+
+// Add debug logging for Railway
+if (isProduction) {
+  console.log('[DB] Production database configuration:');
+  console.log('[DB] Using DATABASE_URL:', !!process.env.DATABASE_URL);
+  console.log('[DB] Host:', process.env.DATABASE_HOST || 'from DATABASE_URL');
+  console.log('[DB] Port:', process.env.DATABASE_PORT || 'from DATABASE_URL');
+  console.log('[DB] Database:', process.env.DATABASE_NAME || 'from DATABASE_URL');
+  console.log('[DB] SSL enabled:', !!isProduction);
+}
