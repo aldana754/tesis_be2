@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Sistema de Preferencias</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+        }
+        .tag-button {
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .tag-button:hover {
+            background: #1976D2;
+        }
+        .tag-button.selected {
+            background: #4CAF50;
+        }
+        .tag-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .statistics {
+            margin-top: 30px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .percentage {
+            font-weight: bold;
+            color: #4CAF50;
+        }
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .selection-info {
+            margin: 20px 0;
+            padding: 15px;
+            background: #e3f2fd;
+            border-radius: 5px;
+            border-left: 4px solid #2196F3;
+        }
+        .submit-btn {
+            background: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px;
+        }
+        .submit-btn:hover {
+            background: #45a049;
+        }
+        .submit-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .clear-btn {
+            background: #f44336;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🏷️ Sistema de Preferencias de Turismo</h1>
+    
+    <div class="selection-info">
+        <h3>📋 Instrucciones:</h3>
+        <p>Selecciona hasta <strong>5 tipos de turismo</strong> que más te interesen. Puedes hacer clic en los botones para seleccionar/deseleccionar.</p>
+        <p><strong>Seleccionados:</strong> <span id="selected-count">0</span>/5</p>
+    </div>
+    
+    <h2>Elige tus tipos de turismo preferidos:</h2>
+    <div id="tags-container">
+        <!-- Los tags se cargarán aquí -->
+    </div>
+
+    <div style="margin: 20px 0;">
+        <button id="submit-btn" class="submit-btn" onclick="submitPreferences()" disabled>
+            Enviar Preferencias
+        </button>
+        <button class="clear-btn" onclick="clearSelection()">Limpiar Selección</button>
+    </div>
+
+    <div id="result"></div>
+
+    <div class="statistics">
+        <h3>📊 Estadísticas en Tiempo Real</h3>
+        <div id="statistics-container">
+            <p>Cargando estadísticas...</p>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:3000/api';
+        let selectedTags = [];
+        let allTags = [];
+        
+        // Cargar tags disponibles
+        async function loadTags() {
+            try {
+                const response = await fetch(`${API_BASE}/tags`);
+                const data = await response.json();
+                
+                allTags = data.data;
+                const container = document.getElementById('tags-container');
+                container.innerHTML = '';
+                
+                allTags.forEach(tag => {
+                    const button = document.createElement('button');
+                    button.className = 'tag-button';
+                    button.textContent = `${tag.name}`;
+                    button.id = `tag-${tag.id}`;
+                    button.onclick = () => toggleTag(tag.id, tag.name, button);
+                    container.appendChild(button);
+                });
+            } catch (error) {
+                console.error('Error loading tags:', error);
+                showResult('Error al cargar tags', 'error');
+            }
+        }
+
+        // Alternar selección de tag
+        function toggleTag(tagId, tagName, button) {
+            const index = selectedTags.findIndex(tag => tag.id === tagId);
+            
+            if (index > -1) {
+                // Deseleccionar
+                selectedTags.splice(index, 1);
+                button.classList.remove('selected');
+            } else {
+                // Seleccionar (si no excede el límite)
+                if (selectedTags.length < 5) {
+                    selectedTags.push({ id: tagId, name: tagName });
+                    button.classList.add('selected');
+                } else {
+                    showResult('⚠️ Solo puedes seleccionar máximo 5 tags', 'error');
+                    return;
+                }
+            }
+            
+            updateUI();
+        }
+
+        // Actualizar interfaz
+        function updateUI() {
+            const count = selectedTags.length;
+            document.getElementById('selected-count').textContent = count;
+            document.getElementById('submit-btn').disabled = count === 0;
+            
+            // Deshabilitar botones si ya hay 5 seleccionados
+            const buttons = document.querySelectorAll('.tag-button');
+            buttons.forEach(button => {
+                if (!button.classList.contains('selected')) {
+                    button.disabled = count >= 5;
+                }
+            });
+        }
+
+        // Limpiar selección
+        function clearSelection() {
+            selectedTags = [];
+            document.querySelectorAll('.tag-button').forEach(button => {
+                button.classList.remove('selected');
+                button.disabled = false;
+            });
+            updateUI();
+        }
+
+        // Enviar preferencias
+        async function submitPreferences() {
+            if (selectedTags.length === 0) {
+                showResult('⚠️ Selecciona al menos un tag', 'error');
+                return;
+            }
+
+            try {
+                const tagIds = selectedTags.map(tag => tag.id);
+                const response = await fetch(`${API_BASE}/preferences`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ tagIds })
+                });
+
+                const data = await response.json();
+                
+                if (response.ok) {
+                    const tagNames = selectedTags.map(tag => tag.name).join(', ');
+                    showResult(`✅ ¡Gracias! Tus preferencias (${tagNames}) han sido registradas.`, 'success');
+                    clearSelection();
+                    loadStatistics(); // Recargar estadísticas
+                } else {
+                    showResult(`❌ Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                console.error('Error adding preferences:', error);
+                showResult('❌ Error al registrar preferencias', 'error');
+            }
+        }
+
+        // Cargar estadísticas
+        async function loadStatistics() {
+            try {
+                const response = await fetch(`${API_BASE}/preferences/statistics`);
+                const data = await response.json();
+                
+                const container = document.getElementById('statistics-container');
+                
+                if (data.data.totalResponses === 0) {
+                    container.innerHTML = '<p>No hay votos aún. ¡Sé el primero en votar!</p>';
+                    return;
+                }
+                
+                let html = `<p><strong>Total de votos: ${data.data.totalResponses}</strong></p>`;
+                
+                data.data.statistics.forEach(stat => {
+                    html += `
+                        <div class="stat-item">
+                            <span>${stat.tagName} (${stat.count} votos)</span>
+                            <span class="percentage">${stat.percentage}%</span>
+                        </div>
+                    `;
+                });
+                
+                container.innerHTML = html;
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                document.getElementById('statistics-container').innerHTML = 
+                    '<p>Error al cargar estadísticas</p>';
+            }
+        }
+
+        // Mostrar resultado
+        function showResult(message, type) {
+            const resultDiv = document.getElementById('result');
+            resultDiv.textContent = message;
+            resultDiv.className = type;
+            
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                resultDiv.textContent = '';
+                resultDiv.className = '';
+            }, 3000);
+        }
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            loadTags();
+            loadStatistics();
+        });
+    </script>
+</body>
+</html>

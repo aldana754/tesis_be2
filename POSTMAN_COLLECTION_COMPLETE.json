@@ -1,0 +1,926 @@
+{
+  "info": {
+    "name": "Tesis BE - Complete API Collection",
+    "description": "Colección completa para probar todas las funcionalidades del backend de la tesis",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api",
+      "type": "string",
+      "description": "API Base URL - Change to Railway URL for production"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "offerId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "🔐 Authentication",
+      "item": [
+        {
+          "name": "Register User (Service Provider)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"OWNER\",\n  \"firstName\": \"Carlos\",\n  \"lastname\": \"Martinez\",\n  \"email\": \"carlos.martinez@test.com\",\n  \"password\": \"123456\",\n  \"phoneNumber\": \"+54 11 4567-8901\",\n  \"localityId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Register User (Client)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"CLIENT\",\n  \"firstName\": \"Maria\",\n  \"lastname\": \"Lopez\",\n  \"email\": \"maria.lopez@test.com\",\n  \"password\": \"123456\",\n  \"phoneNumber\": \"+54 11 9876-5432\",\n  \"localityId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login with Seeded User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('authToken', response.token);",
+                  "    pm.environment.set('userId', response.user.id);",
+                  "    console.log('Token saved:', response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"ana.garcia@example.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Login with Test User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('authToken', response.token);",
+                  "    pm.environment.set('userId', response.user.id);",
+                  "    console.log('Token saved:', response.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"carlos.martinez@test.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👤 Users",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users",
+              "host": ["{{baseUrl}}"],
+              "path": ["users"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Carlos Updated\",\n  \"lastname\": \"Martinez Updated\",\n  \"phoneNumber\": \"+54 11 9999-8888\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🏷️ Tags",
+      "item": [
+        {
+          "name": "Get All Tags",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Tag by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/tags/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Tag",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Testing\",\n  \"description\": \"Servicios de testing y QA\",\n  \"color\": \"#9C27B0\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/tags",
+              "host": ["{{baseUrl}}"],
+              "path": ["tags"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "❤️ Preferences (Sistema Principal)",
+      "item": [
+        {
+          "name": "Add Single Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Multiple Preferences (FEATURE PRINCIPAL)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagIds\": [1, 3, 5, 7, 9]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Anonymous Preference",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": 2\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Multiple Anonymous Preferences",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagIds\": [2, 4, 6]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Preferences",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/preferences/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences", "user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Preferences (Statistics)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete User Preference",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/preferences/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📝 Offers",
+      "item": [
+        {
+          "name": "Get All Offers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Offer by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Offer",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('offerId', response.id);",
+                  "    console.log('Offer ID saved:', response.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Desarrollo de Aplicaciones Web\",\n  \"shortDescription\": \"Desarrollo de sitios web modernos y responsivos\",\n  \"longDescription\": \"Ofrezco servicios de desarrollo web completo utilizando tecnologías modernas como React, Node.js, TypeScript y bases de datos PostgreSQL. Experiencia en desarrollo de aplicaciones escalables y mantenibles.\",\n  \"price\": 5000,\n  \"priceUnit\": \"PER_PROJECT\",\n  \"currency\": \"ARS\",\n  \"tagIds\": [8, 15],\n  \"localityId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/offers",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Offer",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Desarrollo Web Premium Updated\",\n  \"shortDescription\": \"Servicios premium de desarrollo web\",\n  \"price\": 7500\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers", "{{offerId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Offers by Tag",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers?tagId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers"],
+              "query": [
+                {
+                  "key": "tagId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Search Offers by Location",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/offers?localityId=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers"],
+              "query": [
+                {
+                  "key": "localityId",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User's Offers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers", "user"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Offer",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/offers/{{offerId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["offers", "{{offerId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📍 Locations",
+      "item": [
+        {
+          "name": "Get All Countries",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/countries",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "countries"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Provinces by Country",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/countries/1/provinces",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "countries", "1", "provinces"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Localities by Province",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/provinces/1/localities",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "provinces", "1", "localities"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Localities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/locations/localities",
+              "host": ["{{baseUrl}}"],
+              "path": ["locations", "localities"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "⭐ Reviews",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": 1,\n  \"rating\": 5,\n  \"comment\": \"Excelente servicio, muy profesional y puntual. Altamente recomendado!\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/reviews",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reviews by Offer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/offer/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews", "offer", "1"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Reviews by User",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/reviews/user",
+              "host": ["{{baseUrl}}"],
+              "path": ["reviews", "user"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "💬 Messages & Conversations",
+      "item": [
+        {
+          "name": "Start Conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"offerId\": 1,\n  \"initialMessage\": \"Hola, me interesa tu servicio. ¿Podrías darme más información?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get User Conversations",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/conversations",
+              "host": ["{{baseUrl}}"],
+              "path": ["conversations"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"conversationId\": 1,\n  \"content\": \"Perfecto, ¿cuándo podríamos coordinar una reunión?\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/messages",
+              "host": ["{{baseUrl}}"],
+              "path": ["messages"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Messages by Conversation",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/messages/conversation/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["messages", "conversation", "1"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "🧪 Test Scenarios",
+      "item": [
+        {
+          "name": "Test: Exceed Max Preferences (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagIds\": [1, 2, 3, 4, 5, 6]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test: Duplicate Preference (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test: Invalid Tag ID (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"tagId\": 9999\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/preferences",
+              "host": ["{{baseUrl}}"],
+              "path": ["preferences"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Test: Unauthorized Access (Should Fail)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

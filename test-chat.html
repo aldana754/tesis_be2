@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Chat WebSocket</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .chat-container {
+            border: 1px solid #ccc;
+            height: 400px;
+            overflow-y: auto;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: #f9f9f9;
+        }
+        .message {
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 5px;
+        }
+        .message.sent {
+            background-color: #007bff;
+            color: white;
+            text-align: right;
+        }
+        .message.received {
+            background-color: #e9ecef;
+            color: black;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        input, button {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="text"] {
+            flex: 1;
+        }
+        .status {
+            padding: 10px;
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 4px;
+            margin-bottom: 10px;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Test Chat WebSocket - Tesis App</h1>
+    
+    <div id="status" class="status">Desconectado</div>
+    
+    <div class="controls">
+        <input type="number" id="userId" placeholder="Tu User ID" value="1">
+        <button onclick="connectUser()">Conectar Usuario</button>
+    </div>
+    
+    <div class="controls">
+        <input type="number" id="conversationId" placeholder="Conversation ID" value="1">
+        <button onclick="joinConversation()">Unirse a Conversación</button>
+    </div>
+    
+    <div class="chat-container" id="chatContainer">
+        <p><em>Conecta un usuario y únete a una conversación para empezar a chatear...</em></p>
+    </div>
+    
+    <div class="controls">
+        <input type="text" id="messageInput" placeholder="Escribe tu mensaje..." onkeypress="handleKeyPress(event)">
+        <button onclick="sendMessage()">Enviar</button>
+    </div>
+    
+    <div class="controls">
+        <button onclick="markAsRead()">Marcar como Leído</button>
+        <button onclick="clearChat()">Limpiar Chat</button>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket;
+        let currentUserId = null;
+        let currentConversationId = null;
+
+        function updateStatus(message, isError = false) {
+            const statusEl = document.getElementById('status');
+            statusEl.textContent = message;
+            statusEl.className = isError ? 'status error' : 'status';
+        }
+
+        function addMessage(content, isSent = false, sender = 'Usuario') {
+            const chatContainer = document.getElementById('chatContainer');
+            const messageEl = document.createElement('div');
+            messageEl.className = `message ${isSent ? 'sent' : 'received'}`;
+            messageEl.innerHTML = `<strong>${sender}:</strong> ${content}`;
+            chatContainer.appendChild(messageEl);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function connectWebSocket() {
+            socket = io('http://localhost:3000');
+
+            socket.on('connect', () => {
+                updateStatus('Conectado al WebSocket');
+                console.log('✅ Conectado al WebSocket');
+            });
+
+            socket.on('disconnect', () => {
+                updateStatus('Desconectado del WebSocket', true);
+                console.log('❌ Desconectado del WebSocket');
+            });
+
+            // Eventos del chat
+            socket.on('message-received', (data) => {
+                console.log('📨 Mensaje recibido:', data);
+                addMessage(data.message.content, data.message.senderId === currentUserId, `Usuario ${data.message.senderId}`);
+            });
+
+            socket.on('user-typing', (data) => {
+                console.log('⌨️ Usuario escribiendo:', data);
+                if (data.isTyping) {
+                    addMessage(`Usuario ${data.userId} está escribiendo...`, false, 'Sistema');
+                }
+            });
+
+            socket.on('messages-read', (data) => {
+                console.log('✅ Mensajes leídos:', data);
+                addMessage(`Mensajes leídos por Usuario ${data.readBy}`, false, 'Sistema');
+            });
+
+            socket.on('new-message-notification', (data) => {
+                console.log('🔔 Notificación:', data);
+                addMessage('¡Tienes un nuevo mensaje!', false, 'Notificación');
+            });
+
+            socket.on('user-online', (data) => {
+                console.log('🟢 Usuario en línea:', data);
+                addMessage(`Usuario ${data.userId} se conectó`, false, 'Sistema');
+            });
+
+            socket.on('user-offline', (data) => {
+                console.log('🔴 Usuario desconectado:', data);
+                addMessage(`Usuario ${data.userId} se desconectó`, false, 'Sistema');
+            });
+
+            socket.on('error', (data) => {
+                console.error('❌ Error:', data);
+                updateStatus(`Error: ${data.message}`, true);
+            });
+        }
+
+        function connectUser() {
+            const userIdInput = document.getElementById('userId');
+            const userId = parseInt(userIdInput.value);
+            
+            if (!userId) {
+                alert('Ingresa un User ID válido');
+                return;
+            }
+
+            if (!socket) {
+                connectWebSocket();
+            }
+
+            currentUserId = userId;
+            socket.emit('user-connect', { userId });
+            updateStatus(`Usuario ${userId} conectado`);
+            addMessage(`Te conectaste como Usuario ${userId}`, true, 'Sistema');
+        }
+
+        function joinConversation() {
+            const conversationIdInput = document.getElementById('conversationId');
+            const conversationId = parseInt(conversationIdInput.value);
+            
+            if (!conversationId || !currentUserId) {
+                alert('Conecta un usuario y especifica un Conversation ID válido');
+                return;
+            }
+
+            currentConversationId = conversationId;
+            socket.emit('join-conversation', { conversationId, userId: currentUserId });
+            updateStatus(`Usuario ${currentUserId} unido a conversación ${conversationId}`);
+            addMessage(`Te uniste a la conversación ${conversationId}`, true, 'Sistema');
+        }
+
+        function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+            
+            if (!content || !currentConversationId || !currentUserId) {
+                alert('Conecta un usuario, únete a una conversación y escribe un mensaje');
+                return;
+            }
+
+            socket.emit('send-message', {
+                conversationId: currentConversationId,
+                senderId: currentUserId,
+                content: content,
+                messageType: 'TEXT'
+            });
+
+            addMessage(content, true, `Usuario ${currentUserId} (Tú)`);
+            messageInput.value = '';
+        }
+
+        function markAsRead() {
+            if (!currentConversationId || !currentUserId) {
+                alert('Únete a una conversación primero');
+                return;
+            }
+
+            socket.emit('mark-as-read', {
+                conversationId: currentConversationId,
+                userId: currentUserId
+            });
+
+            addMessage('Mensajes marcados como leídos', true, 'Sistema');
+        }
+
+        function clearChat() {
+            const chatContainer = document.getElementById('chatContainer');
+            chatContainer.innerHTML = '<p><em>Chat limpiado...</em></p>';
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        // Conectar automáticamente al cargar la página
+        window.onload = () => {
+            updateStatus('Listo para conectar');
+        };
+    </script>
+</body>
+</html>
