@@ -103,6 +103,12 @@ class App {
     this.app.use(express.json());
     this.app.use(express.urlencoded({ extended: true }));
     
+    // Debug middleware to track all requests (for Railway debugging)
+    this.app.use((req, _res, next) => {
+      console.log(`[DEBUG] ${req.method} ${req.path} - Auth header: ${req.headers.authorization ? 'Present' : 'None'}`);
+      next();
+    });
+    
     // Servir archivos estáticos (para Socket.io y archivos de prueba)
     this.app.use(express.static('.'));
   }
@@ -182,8 +188,26 @@ class App {
     // PUBLIC ROUTES (NO AUTHENTICATION REQUIRED)
     // ===============================================
     console.log('[APP] Configuring public routes...');
-    this.app.use('/api', createAuthRoutes(authController));
+    
+    // CRITICAL: Auth routes MUST be registered first to avoid conflicts
+    const authRoutes = createAuthRoutes(authController);
+    this.app.use('/api', authRoutes);
+    console.log('[APP] Auth routes registered at /api');
+
+    // EXPLICIT auth routes for Railway (backup)
+    this.app.post('/api/auth/register', (req, res) => {
+      console.log('[EXPLICIT] Direct register route called');
+      authController.register(req, res);
+    });
+    
+    this.app.post('/api/auth/login', (req, res) => {
+      console.log('[EXPLICIT] Direct login route called');
+      authController.login(req, res);
+    });
+
     this.app.use('/api', createTagRoutes(tagController)); // Tags are public for browsing
+    console.log('[APP] Tag routes registered at /api');
+    
     console.log('[APP] Public routes configured successfully');
 
     // ===============================================
@@ -215,6 +239,30 @@ class App {
         timestamp: new Date().toISOString(),
         environment: process.env.NODE_ENV || 'development',
         version: '1.0.0'
+      });
+    });
+
+    // Debug endpoint for Railway troubleshooting
+    this.app.get('/debug', (_req, res) => {
+      res.json({
+        status: 'Debug endpoint',
+        environment: process.env.NODE_ENV || 'development',
+        port: this.port,
+        timestamp: new Date().toISOString(),
+        routes_configured: true,
+        auth_routes_public: true,
+        message: 'If you see this, the server is running correctly'
+      });
+    });
+
+    // Test auth endpoint specifically for Railway debugging
+    this.app.post('/test-register', (req, res) => {
+      console.log('[TEST-REGISTER] Endpoint called without auth middleware');
+      res.json({
+        success: true,
+        message: 'Test register endpoint reached without authentication',
+        body_received: !!req.body,
+        timestamp: new Date().toISOString()
       });
     });
 
