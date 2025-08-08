@@ -23,6 +23,9 @@ export class AuthMiddleware {
 
   authenticate = (req: Request, res: Response, next: NextFunction): void => {
     try {
+      // Debug log for Railway deployment
+      console.log(`[AUTH DEBUG] ${req.method} ${req.path} - Headers:`, req.headers.authorization ? 'Token present' : 'No token');
+      
       const authHeader = req.headers.authorization;
 
       if (!authHeader || !authHeader.startsWith('Bearer ')) {

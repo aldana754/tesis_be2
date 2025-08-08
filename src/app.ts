@@ -61,6 +61,7 @@ import * as dotenv from 'dotenv';
 dotenv.config();
 
 // Authentication system implemented with JWT tokens (1 hour expiration)
+// Fixed: Ensuring auth routes are properly configured as public endpoints
 class App {
   private app: express.Application;
   private server: any;
