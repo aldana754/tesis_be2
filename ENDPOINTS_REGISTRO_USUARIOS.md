@@ -2,7 +2,7 @@
 
 ## ⚠️ IMPORTANTE: Diferencia entre Registro Público y Gestión Administrativa
 
-Este sistema tiene **DOS formas diferentes** de trabajar con usuarios, cada una con propósitos distintos:
+Este sistema tiene **DOS formas diferentes** de trabajar con usuarios, cada una con propósitos distintos y niveles de autorización diferentes:
 
 ## 1. 🔓 REGISTRO PÚBLICO (Sin Token) 
 
@@ -86,10 +86,12 @@ Content-Type: application/json
 
 ## 🔧 Solución al Problema
 
-Si estás recibiendo "Access token required" al intentar registrar usuarios, verifica que estés usando:
+Si estás recibiendo el error "Access token required" al intentar registrar usuarios, verifica que estés usando el endpoint correcto:
 
 ✅ **CORRECTO**: `POST /api/auth/register` (sin token)  
 ❌ **INCORRECTO**: `POST /api/users` (requiere token)
+
+**Recuerda**: El registro de usuarios es una operación pública que no requiere autenticación previa.
 
 ## 🧪 Pruebas con PowerShell
 

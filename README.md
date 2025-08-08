@@ -32,7 +32,12 @@ src/
 - **TypeORM** - ORM para TypeScript/JavaScript
 - **PostgreSQL** - Base de datos relacional
 
-## 📋 Requisitos
+## � Documentación Adicional
+
+- [Guía de Endpoints de Registro](./ENDPOINTS_REGISTRO_USUARIOS.md) - Diferencias entre registro público y gestión administrativa
+- [Ejemplos de Postman](./POSTMAN_EXAMPLES.md) - Ejemplos completos de uso de la API
+
+## �📋 Requisitos
 
 - Node.js (v18 o superior)
 - PostgreSQL (v12 o superior)
