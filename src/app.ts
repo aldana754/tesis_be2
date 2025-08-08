@@ -178,11 +178,18 @@ class App {
     // Initialize Auth Middleware
     const authMiddleware = new AuthMiddleware();
 
-    // Public routes (no authentication required)
+    // ===============================================
+    // PUBLIC ROUTES (NO AUTHENTICATION REQUIRED)
+    // ===============================================
+    console.log('[APP] Configuring public routes...');
     this.app.use('/api', createAuthRoutes(authController));
     this.app.use('/api', createTagRoutes(tagController)); // Tags are public for browsing
+    console.log('[APP] Public routes configured successfully');
 
-    // Protected routes (authentication required)
+    // ===============================================
+    // PROTECTED ROUTES (AUTHENTICATION REQUIRED)
+    // ===============================================
+    console.log('[APP] Configuring protected routes...');
     this.app.use('/api', authMiddleware.authenticate, createUserProfileRoutes(controllerHandler.getUserProfileHandler()));
     this.app.use('/api', authMiddleware.authenticate, createOfferRoutes(controllerHandler.getOfferHandler()));
     this.app.use('/api', authMiddleware.authenticate, createReviewRoutes(controllerHandler.getReviewHandler()));
@@ -195,6 +202,11 @@ class App {
     // Chat routes (protected)
     this.app.use('/api', authMiddleware.authenticate, createConversationRoutes(conversationController));
     this.app.use('/api', authMiddleware.authenticate, createMessageRoutes(messageController));
+    console.log('[APP] Protected routes configured successfully');
+
+    // ===============================================
+    // ADDITIONAL PUBLIC ROUTES
+    // ===============================================
 
     // Health check (public)
     this.app.get('/health', async (_req, res) => {
